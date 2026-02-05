@@ -33,7 +33,7 @@ export default function RootLayout({
         <ClientProvider>
           <Navigation />
           <MobileNav />
-          <main className="min-h-screen">
+          <main id="main-content" className="min-h-screen">
             {children}
           </main>
         </ClientProvider>

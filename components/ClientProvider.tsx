@@ -8,6 +8,7 @@
 
 import { useEffect, useState, ReactNode } from 'react';
 import { initializeData } from '@/lib/storage/initializer';
+import { ErrorBoundary } from './ErrorBoundary';
 
 export function ClientProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -37,5 +38,9 @@ export function ClientProvider({ children }: { children: ReactNode }) {
     );
   }
   
-  return <>{children}</>;
+  return (
+    <ErrorBoundary>
+      {children}
+    </ErrorBoundary>
+  );
 }

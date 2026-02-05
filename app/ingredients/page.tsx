@@ -6,17 +6,19 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { useIngredients } from '@/lib/hooks/useIngredients';
 import { useIngredientStore } from '@/lib/stores/ingredientStore';
 import { Ingredient } from '@/types/Ingredient';
 import { IngredientCard } from '@/components/ingredient/IngredientCard';
-import { IngredientForm } from '@/components/ingredient/IngredientForm';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { EmptyState } from '@/components/common/EmptyState';
 import * as ingredientService from '@/lib/services/ingredientService';
 import { generateId } from '@/lib/utils/uuid';
+
+// Lazy load the IngredientForm component
+const IngredientForm = lazy(() => import('@/components/ingredient/IngredientForm').then(module => ({ default: module.IngredientForm })));
 
 export default function IngredientsPage() {
   const { ingredients, isLoading, reloadIngredients } = useIngredients();
@@ -155,14 +157,16 @@ export default function IngredientsPage() {
         title={editingIngredient ? 'Edit Ingredient' : 'Add New Ingredient'}
         size="lg"
       >
-        <IngredientForm
-          ingredient={editingIngredient}
-          onSubmit={handleFormSubmit}
-          onCancel={() => {
-            setIsFormOpen(false);
-            setEditingIngredient(null);
-          }}
-        />
+        <Suspense fallback={<div className="p-8 text-center">Loading form...</div>}>
+          <IngredientForm
+            ingredient={editingIngredient}
+            onSubmit={handleFormSubmit}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setEditingIngredient(null);
+            }}
+          />
+        </Suspense>
       </Modal>
       
       {/* Delete Confirmation Modal */}

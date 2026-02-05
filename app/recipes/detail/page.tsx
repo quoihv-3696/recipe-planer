@@ -7,16 +7,19 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Recipe } from '@/types/Recipe';
 import { Ingredient } from '@/types/Ingredient';
 import { useRecipes } from '@/lib/hooks/useRecipes';
 import { useIngredients } from '@/lib/hooks/useIngredients';
 import { RecipeDetail } from '@/components/recipe/RecipeDetail';
-import { RecipeForm, RecipeFormData } from '@/components/recipe/RecipeForm';
+import type { RecipeFormData } from '@/components/recipe/RecipeForm';
 import { DeleteConfirmModal } from '@/components/recipe/DeleteConfirmModal';
 import { Modal } from '@/components/common/Modal';
+
+// Lazy load the heavy RecipeForm component
+const RecipeForm = lazy(() => import('@/components/recipe/RecipeForm').then(module => ({ default: module.RecipeForm })));
 
 export default function RecipeDetailPage() {
   const router = useRouter();
@@ -151,12 +154,14 @@ export default function RecipeDetailPage() {
         onClose={() => !isSubmitting && setIsEditModalOpen(false)}
         title="Edit Recipe"
       >
-        <RecipeForm
-          recipe={recipe}
-          onSubmit={handleEditRecipe}
-          onCancel={() => setIsEditModalOpen(false)}
-          isSubmitting={isSubmitting}
-        />
+        <Suspense fallback={<div className="p-8 text-center">Loading form...</div>}>
+          <RecipeForm
+            recipe={recipe}
+            onSubmit={handleEditRecipe}
+            onCancel={() => setIsEditModalOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </Suspense>
       </Modal>
       
       {/* Delete Confirmation Modal */}

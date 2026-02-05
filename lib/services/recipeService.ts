@@ -98,11 +98,16 @@ export async function deleteRecipe(id: string): Promise<boolean> {
 
 /**
  * Search recipes by name or ingredient
+ * Supports partial matching (fuzzy search)
  */
-export async function searchRecipes(query: string): Promise<Recipe[]> {
+export async function searchRecipes(query: string, ingredients?: { id: string; name: string }[]): Promise<Recipe[]> {
   try {
+    if (!query.trim()) {
+      return await getAllRecipes();
+    }
+    
     const allRecipes = await getAllRecipes();
-    const lowercaseQuery = query.toLowerCase();
+    const lowercaseQuery = query.toLowerCase().trim();
     
     return allRecipes.filter((recipe) => {
       // Search in recipe name
@@ -113,6 +118,18 @@ export async function searchRecipes(query: string): Promise<Recipe[]> {
       // Search in instructions
       if (recipe.instructions.toLowerCase().includes(lowercaseQuery)) {
         return true;
+      }
+      
+      // Search in ingredient names (if ingredient list provided)
+      if (ingredients && ingredients.length > 0) {
+        const recipeIngredientIds = recipe.ingredients.map(ing => ing.ingredientId);
+        const matchingIngredients = ingredients.filter(ing => 
+          recipeIngredientIds.includes(ing.id) && 
+          ing.name.toLowerCase().includes(lowercaseQuery)
+        );
+        if (matchingIngredients.length > 0) {
+          return true;
+        }
       }
       
       return false;

@@ -6,20 +6,59 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRecipes } from '@/lib/hooks/useRecipes';
+import { useIngredients } from '@/lib/hooks/useIngredients';
 import { RecipeCard } from '@/components/recipe/RecipeCard';
-import { RecipeForm, RecipeFormData } from '@/components/recipe/RecipeForm';
+import type { RecipeFormData } from '@/components/recipe/RecipeForm';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import { Input } from '@/components/common/Input';
 import { EmptyState } from '@/components/common/EmptyState';
+
+// Lazy load the heavy RecipeForm component
+const RecipeForm = lazy(() => import('@/components/recipe/RecipeForm').then(module => ({ default: module.RecipeForm })));
 
 export default function RecipesPage() {
   const router = useRouter();
   const { recipes, isLoading, error, createRecipe } = useRecipes();
+  const { ingredients } = useIngredients();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  // Filter recipes based on search query
+  const filteredRecipes = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return recipes;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    const ingredientMap = new Map(ingredients.map(ing => [ing.id, ing]));
+    
+    return recipes.filter(recipe => {
+      // Search in recipe name
+      if (recipe.name.toLowerCase().includes(query)) {
+        return true;
+      }
+      
+      // Search in instructions
+      if (recipe.instructions.toLowerCase().includes(query)) {
+        return true;
+      }
+      
+      // Search in ingredient names
+      for (const recipeIng of recipe.ingredients) {
+        const ingredient = ingredientMap.get(recipeIng.ingredientId);
+        if (ingredient && ingredient.name.toLowerCase().includes(query)) {
+          return true;
+        }
+      }
+      
+      return false;
+    });
+  }, [recipes, searchQuery, ingredients]);
   
   const handleCreateRecipe = async (data: RecipeFormData) => {
     setIsSubmitting(true);
@@ -72,30 +111,73 @@ export default function RecipesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Page Header */}
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Recipes</h1>
-          <p className="text-gray-600">Browse your recipe collection</p>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Recipes</h1>
+            <p className="text-gray-600">Browse your recipe collection</p>
+          </div>
+          <Button onClick={() => setIsFormOpen(true)}>
+            + Add Recipe
+          </Button>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
-          + Add Recipe
-        </Button>
+        
+        {/* Search Bar */}
+        <div className="relative">
+          <Input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search recipes by name or ingredient..."
+            className="w-full"
+            aria-label="Search recipes"
+            id="recipe-search"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        
+        {/* Search Results Count */}
+        {searchQuery && (
+          <p className="mt-2 text-sm text-gray-600">
+            {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? 's' : ''} found
+          </p>
+        )}
       </div>
       
       {/* Recipes Grid */}
-      {recipes.length === 0 ? (
-        <EmptyState
-          icon={
-            <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          }
-          title="No recipes yet"
-          description="Start building your recipe collection by adding your first recipe."
-        />
+      {filteredRecipes.length === 0 ? (
+        searchQuery ? (
+          <EmptyState
+            icon="🔍"
+            title="No recipes found"
+            description={`No recipes match "${searchQuery}". Try a different search term.`}
+            action={{
+              label: 'Clear Search',
+              onClick: () => setSearchQuery('')
+            }}
+          />
+        ) : (
+          <EmptyState
+            icon={
+              <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            }
+            title="No recipes yet"
+            description="Start building your recipe collection by adding your first recipe."
+          />
+        )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {recipes.map((recipe) => (
+          {filteredRecipes.map((recipe) => (
             <RecipeCard
               key={recipe.id}
               recipe={recipe}
@@ -111,11 +193,13 @@ export default function RecipesPage() {
         onClose={() => !isSubmitting && setIsFormOpen(false)}
         title="Add New Recipe"
       >
-        <RecipeForm
-          onSubmit={handleCreateRecipe}
-          onCancel={() => setIsFormOpen(false)}
-          isSubmitting={isSubmitting}
-        />
+        <Suspense fallback={<div className="p-8 text-center">Loading form...</div>}>
+          <RecipeForm
+            onSubmit={handleCreateRecipe}
+            onCancel={() => setIsFormOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </Suspense>
       </Modal>
     </div>
   );

@@ -35,12 +35,19 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
  * @param key - Storage key (should include appropriate prefix)
  * @param value - Value to store
  * @returns Promise resolving to true if successful
+ * @throws Error if storage quota is exceeded
  */
 export async function setItem<T>(key: string, value: T): Promise<boolean> {
   try {
     await set(key, value);
     return true;
-  } catch (error) {
+  } catch (error: any) {
+    // Check for quota exceeded error
+    if (error?.name === 'QuotaExceededError') {
+      const message = 'Storage quota exceeded. Please delete some data or clear browser storage.';
+      console.error(message, error);
+      throw new Error(message);
+    }
     console.error(`Error writing to IndexedDB (key: ${key}):`, error);
     return false;
   }
