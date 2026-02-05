@@ -7,21 +7,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMealPlan } from '@/lib/hooks/useMealPlan';
 import { useRecipes } from '@/lib/hooks/useRecipes';
+import { useIngredients } from '@/lib/hooks/useIngredients';
 import { WeeklyCalendar } from '@/components/meal-plan/WeeklyCalendar';
 import { RecipeSearch } from '@/components/meal-plan/RecipeSearch';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { mealPlanService } from '@/lib/services/mealPlanService';
+import { groceryService } from '@/lib/services/groceryService';
 import { Recipe } from '@/types/Recipe';
 import { MealType } from '@/types/MealPlan';
 import { format, parseISO, addWeeks, subWeeks } from 'date-fns';
 
 export default function MealPlanPage() {
+  const router = useRouter();
   const { mealPlans, currentPlan, isLoading: planLoading, reloadMealPlans } = useMealPlan();
   const { recipes, isLoading: recipesLoading } = useRecipes();
+  const { ingredients, isLoading: ingredientsLoading } = useIngredients();
   
   const [weekStart, setWeekStart] = useState<Date>(new Date());
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; mealType: MealType } | null>(null);
@@ -83,11 +88,28 @@ export default function MealPlanPage() {
     }
   };
   
-  const handleGenerateGroceryList = () => {
-    alert('Grocery list generation coming soon!');
+  const handleGenerateGroceryList = async () => {
+    if (!weekMealPlan) {
+      alert('No meal plan available for this week');
+      return;
+    }
+    
+    if (weekMealPlan.meals.length === 0) {
+      alert('Please add some meals to your plan before generating a grocery list');
+      return;
+    }
+    
+    try {
+      await groceryService.generateFromMealPlan(weekMealPlan, recipes, ingredients);
+      alert('Grocery list generated successfully!');
+      router.push('/grocery-list');
+    } catch (error) {
+      console.error('Failed to generate grocery list:', error);
+      alert('Failed to generate grocery list. Please try again.');
+    }
   };
   
-  const loading = planLoading || recipesLoading;
+  const loading = planLoading || recipesLoading || ingredientsLoading;
   
   if (loading) {
     return (

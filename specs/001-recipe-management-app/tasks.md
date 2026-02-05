@@ -272,32 +272,32 @@
 **Why Independent**: Depends on meal plans (US4) but adds independent purchase tracking functionality
 
 ### State Management
-- [ ] T086 [US6] Create grocery store in src/lib/stores/groceryStore.ts with CRUD and status update actions
-- [ ] T087 [US6] Create useGrocery hook in src/lib/hooks/useGrocery.ts
+- [X] T086 [US6] Create grocery store in src/lib/stores/groceryStore.ts with CRUD and status update actions
+- [X] T087 [US6] Create useGrocery hook in src/lib/hooks/useGrocery.ts
 
 ### Service Layer
-- [ ] T088 [US6] Implement groceryService in src/lib/services/groceryService.ts with generation logic
-- [ ] T089 [US6] Implement ingredient aggregation algorithm (sum quantities by ingredient)
-- [ ] T090 [US6] Implement estimated cost calculation from ingredient prices
-- [ ] T091 [US6] Add mark as purchased functionality with actual cost input
-- [ ] T092 [US6] Implement spending statistics calculation (monthly and yearly)
+- [X] T088 [US6] Implement groceryService in src/lib/services/groceryService.ts with generation logic
+- [X] T089 [US6] Implement ingredient aggregation algorithm (sum quantities by ingredient)
+- [X] T090 [US6] Implement estimated cost calculation from ingredient prices
+- [X] T091 [US6] Add mark as purchased functionality with actual cost input
+- [X] T092 [US6] Implement spending statistics calculation (monthly and yearly)
 
 ### UI Components
-- [ ] T093 [US6] Create GroceryListCard component in src/components/grocery/GroceryListCard.tsx
-- [ ] T094 [US6] Create SpendingStats component in src/components/grocery/SpendingStats.tsx with charts
-- [ ] T095 [US6] Add purchase modal for entering actual cost
-- [ ] T096 [US6] Implement month/year selector for statistics filtering
+- [X] T093 [US6] Create GroceryListCard component in src/components/grocery/GroceryListCard.tsx
+- [X] T094 [US6] Create SpendingStats component in src/components/grocery/SpendingStats.tsx with charts
+- [X] T095 [US6] Add purchase modal for entering actual cost
+- [X] T096 [US6] Implement month/year selector for statistics filtering
 
 ### Pages
-- [ ] T097 [US6] Create grocery list page in src/app/grocery-list/page.tsx
-- [ ] T098 [US6] Display all grocery lists with status badges (Not Purchased / Purchased)
-- [ ] T099 [US6] Add clickable list cards to view detailed item breakdown
-- [ ] T100 [US6] Add statistics section showing monthly and yearly spending
-- [ ] T101 [US6] Implement "Mark as Purchased" button with cost input modal
+- [X] T097 [US6] Create grocery list page in src/app/grocery-list/page.tsx
+- [X] T098 [US6] Display all grocery lists with status badges (Not Purchased / Purchased)
+- [X] T099 [US6] Add clickable list cards to view detailed item breakdown
+- [X] T100 [US6] Add statistics section showing monthly and yearly spending
+- [X] T101 [US6] Implement "Mark as Purchased" button with cost input modal
 
 ### Integration
-- [ ] T102 [US6] Connect "Generate Grocery List" button on meal plan page to groceryService
-- [ ] T103 [US6] Verify grocery list creation from meal plan aggregates all ingredients
+- [X] T102 [US6] Connect "Generate Grocery List" button on meal plan page to groceryService
+- [X] T103 [US6] Verify grocery list creation from meal plan aggregates all ingredients
 
 ### Testing Checklist for US6
 - [ ] Verify grocery list generated from meal plan
