@@ -40,7 +40,8 @@ export default function RecipesPage() {
       }
     };
     loadStats();
-  }, [recipes.length, getUsageStats]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipes.length]);
   
   // Filter recipes based on search query
   const filteredRecipes = useMemo(() => {

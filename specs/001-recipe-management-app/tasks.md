@@ -489,28 +489,28 @@
 **Goal**: Prevent duplicate purchases and track which dates are covered
 
 ### Data Model Updates
-- [ ] T174 Update GroceryList type in src/types/GroceryList.ts to add generationType, generatedDate, targetDates, purchasedDates fields
-- [ ] T175 Create PurchasedDates tracking in meal plan store to store which dates have purchased ingredients
-- [ ] T176 Update grocery service in src/lib/services/groceryService.ts with generateDailyList(date) function
-- [ ] T177 Update grocery service with generateWeeklyList(startDate, endDate) function
-- [ ] T178 Implement logic to exclude ingredients for already-purchased dates when generating lists
+- [X] T174 Update GroceryList type in src/types/GroceryList.ts to add generationType, generatedDate, targetDates, purchasedDates fields
+- [X] T175 Create PurchasedDates tracking in meal plan store to store which dates have purchased ingredients
+- [X] T176 Update grocery service in src/lib/services/groceryService.ts with generateDailyList(date) function
+- [X] T177 Update grocery service with generateWeeklyList(startDate, endDate) function
+- [X] T178 Implement logic to exclude ingredients for already-purchased dates when generating lists
 
 ### Grocery List Generation UI
-- [ ] T179 Create GroceryListOptions component in src/components/grocery/GroceryListOptions.tsx with radio buttons (Daily/Weekly)
-- [ ] T180 Add date picker for daily generation and date range picker for weekly generation
-- [ ] T181 Update meal plan page to show GroceryListOptions modal when clicking "Generate Grocery List"
-- [ ] T182 Add visual indicator on meal plan calendar showing which dates have purchased ingredients (e.g., green checkmark)
+- [X] T179 Create GroceryListOptions component in src/components/grocery/GroceryListOptions.tsx with radio buttons (Daily/Weekly)
+- [X] T180 Add date picker for daily generation and date range picker for weekly generation
+- [X] T181 Update meal plan page to show GroceryListOptions modal when clicking "Generate Grocery List"
+- [X] T182 Add visual indicator on meal plan calendar showing which dates have purchased ingredients (e.g., green checkmark)
 
 ### Grocery List Display
-- [ ] T183 Update GroceryListCard component to display "Generated on" and "For meals on" dates
-- [ ] T184 Update grocery list detail view to show target dates clearly
-- [ ] T185 When marking as purchased, automatically record purchasedDates in meal plan tracking
-- [ ] T186 Update grocery list filtering to show lists by target date range
+- [X] T183 Update GroceryListCard component to display "Generated on" and "For meals on" dates
+- [X] T184 Update grocery list detail view to show target dates clearly
+- [X] T185 When marking as purchased, automatically record purchasedDates in meal plan tracking
+- [X] T186 Update grocery list filtering to show lists by target date range
 
 ### Purchase Tracking Updates
-- [ ] T187 Update markAsPurchased() function to accept and store purchasedDates
-- [ ] T188 Update meal plan calendar to query purchased dates and display indicators
-- [ ] T189 Add "Already purchased" label/icon on dates with purchased ingredients
+- [X] T187 Update markAsPurchased() function to accept and store purchasedDates
+- [X] T188 Update meal plan calendar to query purchased dates and display indicators
+- [X] T189 Add "Already purchased" label/icon on dates with purchased ingredients
 
 ### Testing Checklist for Daily/Weekly Lists
 - [ ] Verify can generate grocery list for a single day

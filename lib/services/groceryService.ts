@@ -156,7 +156,11 @@ async function generateFromMealPlan(
 ): Promise<GroceryList> {
   try {
     // Get recipes used in meal plan
-    const recipeIds = new Set(mealPlan.meals.flatMap(m => m.recipeIds));
+    // Handle backward compatibility: ensure recipeIds is always an array
+    const recipeIds = new Set(mealPlan.meals.flatMap(m => {
+      const ids = Array.isArray(m.recipeIds) ? m.recipeIds : (m.recipeIds ? [m.recipeIds] : []);
+      return ids;
+    }));
     const usedRecipes = recipes.filter(r => recipeIds.has(r.id));
     
     // Aggregate ingredients
@@ -183,8 +187,12 @@ async function generateFromMealPlan(
       status: 'not_purchased' as GroceryListStatus,
       estimatedTotal: estimatedCost,
       actualCost: null,
-      createdAt: new Date().toISOString(),
       purchaseDate: null,
+      generationType: 'full',
+      generatedDate: new Date().toISOString(),
+      targetDates: mealPlan.meals.map(m => m.date).filter((v, i, a) => a.indexOf(v) === i).sort(),
+      purchasedDates: [],
+      createdAt: new Date().toISOString(),
     };
     
     return await createGroceryList(groceryList);
@@ -196,8 +204,9 @@ async function generateFromMealPlan(
 
 /**
  * Mark grocery list as purchased with actual cost
+ * Also records purchasedDates in meal plan store if targetDates exist
  */
-async function markAsPurchased(id: string, actualCost: number): Promise<GroceryList> {
+async function markAsPurchased(id: string, actualCost: number, mealPlanId?: string): Promise<GroceryList> {
   try {
     const list = await getGroceryListById(id);
     if (!list) {
@@ -210,7 +219,15 @@ async function markAsPurchased(id: string, actualCost: number): Promise<GroceryL
       purchaseDate: new Date().toISOString(),
     };
     
-    return await updateGroceryList(id, updates);
+    const updatedList = await updateGroceryList(id, updates);
+    
+    // Record purchased dates in meal plan store if applicable
+    if (mealPlanId && list.targetDates && list.targetDates.length > 0) {
+      const { useMealPlanStore } = await import('@/lib/stores/mealPlanStore');
+      useMealPlanStore.getState().addPurchasedDates(mealPlanId, list.targetDates);
+    }
+    
+    return updatedList;
   } catch (error) {
     console.error(`Error marking grocery list ${id} as purchased:`, error);
     throw error;
@@ -258,6 +275,143 @@ async function getSpendingStatistics(year: number, month?: number): Promise<{
 }
 
 /**
+ * Generate grocery list for a single day
+ * Excludes ingredients from meals on already-purchased dates
+ */
+async function generateDailyList(
+  mealPlan: MealPlan,
+  targetDate: string,
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+  purchasedDates: string[] = []
+): Promise<GroceryList> {
+  try {
+    // Filter meals for the target date only
+    const dayMeals = mealPlan.meals.filter(m => m.date === targetDate);
+    
+    // Get recipes for this day
+    // Handle backward compatibility: ensure recipeIds is always an array
+    const recipeIds = new Set(dayMeals.flatMap(m => {
+      const ids = Array.isArray(m.recipeIds) ? m.recipeIds : (m.recipeIds ? [m.recipeIds] : []);
+      return ids;
+    }));
+    const usedRecipes = recipes.filter(r => recipeIds.has(r.id));
+    
+    // Aggregate ingredients
+    const aggregated = aggregateIngredients(usedRecipes, ingredients);
+    
+    // Create grocery items
+    const items: GroceryItem[] = Array.from(aggregated.entries()).map(
+      ([ingredientId, { ingredient, totalQuantity }]) => ({
+        ingredientId,
+        quantity: totalQuantity,
+        unit: ingredient.quantityUnit || 'unit',
+        estimatedPrice: ingredient.unitPrice ? ingredient.unitPrice * totalQuantity : 0,
+      })
+    );
+    
+    // Calculate total estimated cost
+    const estimatedCost = calculateEstimatedCost(aggregated);
+    
+    // Create grocery list
+    const groceryList: GroceryList = {
+      id: `grocery-daily-${Date.now()}`,
+      mealPlanId: mealPlan.id,
+      items,
+      status: 'not_purchased' as GroceryListStatus,
+      estimatedTotal: estimatedCost,
+      actualCost: null,
+      purchaseDate: null,
+      generationType: 'daily',
+      generatedDate: new Date().toISOString(),
+      targetDates: [targetDate],
+      purchasedDates: [],
+      createdAt: new Date().toISOString(),
+    };
+    
+    return await createGroceryList(groceryList);
+  } catch (error) {
+    console.error('Error generating daily grocery list:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate grocery list for a week (date range)
+ * Excludes ingredients from meals on already-purchased dates
+ */
+async function generateWeeklyList(
+  mealPlan: MealPlan,
+  startDate: string,
+  endDate: string,
+  recipes: Recipe[],
+  ingredients: Ingredient[],
+  purchasedDates: string[] = []
+): Promise<GroceryList> {
+  try {
+    // Filter meals within date range, excluding already-purchased dates
+    const weekMeals = mealPlan.meals.filter(m => {
+      return m.date >= startDate && m.date <= endDate && !purchasedDates.includes(m.date);
+    });
+    
+    if (weekMeals.length === 0) {
+      throw new Error('No meals found in the specified date range or all dates already purchased');
+    }
+    
+    // Get recipes for this week
+    // Handle backward compatibility: ensure recipeIds is always an array
+    const recipeIds = new Set(weekMeals.flatMap(m => {
+      const ids = Array.isArray(m.recipeIds) ? m.recipeIds : (m.recipeIds ? [m.recipeIds] : []);
+      return ids;
+    }));
+    const usedRecipes = recipes.filter(r => recipeIds.has(r.id));
+    
+    // Aggregate ingredients
+    const aggregated = aggregateIngredients(usedRecipes, ingredients);
+    
+    // Create grocery items
+    const items: GroceryItem[] = Array.from(aggregated.entries()).map(
+      ([ingredientId, { ingredient, totalQuantity }]) => ({
+        ingredientId,
+        quantity: totalQuantity,
+        unit: ingredient.quantityUnit || 'unit',
+        estimatedPrice: ingredient.unitPrice ? ingredient.unitPrice * totalQuantity : 0,
+      })
+    );
+    
+    // Calculate total estimated cost
+    const estimatedCost = calculateEstimatedCost(aggregated);
+    
+    // Get all unique target dates (sorted)
+    const targetDates = weekMeals
+      .map(m => m.date)
+      .filter((v, i, a) => a.indexOf(v) === i)
+      .sort();
+    
+    // Create grocery list
+    const groceryList: GroceryList = {
+      id: `grocery-weekly-${Date.now()}`,
+      mealPlanId: mealPlan.id,
+      items,
+      status: 'not_purchased' as GroceryListStatus,
+      estimatedTotal: estimatedCost,
+      actualCost: null,
+      purchaseDate: null,
+      generationType: 'weekly',
+      generatedDate: new Date().toISOString(),
+      targetDates,
+      purchasedDates: [],
+      createdAt: new Date().toISOString(),
+    };
+    
+    return await createGroceryList(groceryList);
+  } catch (error) {
+    console.error('Error generating weekly grocery list:', error);
+    throw error;
+  }
+}
+
+/**
  * Grocery Service Object
  */
 export const groceryService = {
@@ -267,6 +421,8 @@ export const groceryService = {
   updateGroceryList,
   deleteGroceryList,
   generateFromMealPlan,
+  generateDailyList,
+  generateWeeklyList,
   markAsPurchased,
   getSpendingStatistics,
 };

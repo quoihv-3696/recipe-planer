@@ -120,7 +120,11 @@ export async function addMealAssignment(
     if (existingIndex >= 0) {
       // Append new recipeIds to existing assignment
       const existing = plan.meals[existingIndex];
-      const mergedRecipeIds = [...new Set([...existing.recipeIds, ...assignment.recipeIds])];
+      // Handle backward compatibility: ensure recipeIds is always an array
+      const existingRecipeIds = Array.isArray(existing.recipeIds) 
+        ? existing.recipeIds 
+        : (existing.recipeIds ? [existing.recipeIds] : []);
+      const mergedRecipeIds = [...new Set([...existingRecipeIds, ...assignment.recipeIds])];
       
       updatedMeals = plan.meals.map((m, i) =>
         i === existingIndex
@@ -191,14 +195,21 @@ export async function removeRecipeFromSlot(
     const updatedMeals = plan.meals
       .map(m => {
         if (m.date === date && m.mealType === mealType) {
+          // Handle backward compatibility: ensure recipeIds is always an array
+          const currentRecipeIds = Array.isArray(m.recipeIds) 
+            ? m.recipeIds 
+            : (m.recipeIds ? [m.recipeIds] : []);
           // Remove the specific recipe from recipeIds array
-          const newRecipeIds = m.recipeIds.filter(id => id !== recipeId);
+          const newRecipeIds = currentRecipeIds.filter(id => id !== recipeId);
           return { ...m, recipeIds: newRecipeIds };
         }
         return m;
       })
       // Remove assignments with no recipes left
-      .filter(m => m.recipeIds.length > 0);
+      .filter(m => {
+        const recipeIds = Array.isArray(m.recipeIds) ? m.recipeIds : [];
+        return recipeIds.length > 0;
+      });
     
     const updatedPlan: MealPlan = {
       ...plan,

@@ -49,7 +49,7 @@ export default function GroceryListPage() {
     }
     
     try {
-      await groceryService.markAsPurchased(selectedList.id, cost);
+      await groceryService.markAsPurchased(selectedList.id, cost, selectedList.mealPlanId);
       await reloadGroceryLists();
       setIsPurchaseModalOpen(false);
       setSelectedList(null);
@@ -211,7 +211,33 @@ export default function GroceryListPage() {
       >
         {selectedList && (
           <div className="space-y-4">
-            <div className="border-b border-gray-200 pb-4">
+            {/* List Info */}
+            <div className="border-b border-gray-200 pb-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">Type:</span>
+                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  {selectedList.generationType === 'daily' ? 'Daily' : 
+                   selectedList.generationType === 'weekly' ? 'Weekly' : 'Full Plan'}
+                </span>
+              </div>
+              
+              <div className="text-sm text-gray-600">
+                Generated: {format(parseISO(selectedList.generatedDate || selectedList.createdAt), 'MMM d, yyyy')}
+              </div>
+              
+              {selectedList.targetDates && selectedList.targetDates.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  <span className="font-medium">For meals on:</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {selectedList.targetDates.map(date => (
+                      <span key={date} className="px-2 py-0.5 bg-gray-100 rounded text-xs">
+                        {format(parseISO(date), 'MMM d')}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <p className="text-sm text-gray-600">
                 {selectedList.items.length} items
               </p>

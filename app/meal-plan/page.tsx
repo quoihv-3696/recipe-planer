@@ -13,6 +13,7 @@ import { useRecipes } from '@/lib/hooks/useRecipes';
 import { useIngredients } from '@/lib/hooks/useIngredients';
 import { WeeklyCalendar } from '@/components/meal-plan/WeeklyCalendar';
 import { RecipeSearch } from '@/components/meal-plan/RecipeSearch';
+import { GroceryListOptions } from '@/components/grocery/GroceryListOptions';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -31,12 +32,23 @@ export default function MealPlanPage() {
   const [weekStart, setWeekStart] = useState<Date>(new Date());
   const [selectedSlot, setSelectedSlot] = useState<{ date: string; mealType: MealType } | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isGroceryOptionsOpen, setIsGroceryOptionsOpen] = useState(false);
+  const [purchasedDates, setPurchasedDates] = useState<string[]>([]);
   
   // Generate current week dates
   const weekDates = mealPlanService.generateWeekDates(weekStart);
   
   // Find meal plan for current week
   const weekMealPlan = currentPlan || mealPlans[0] || null;
+  
+  // Load purchased dates when meal plan changes
+  useEffect(() => {
+    if (weekMealPlan) {
+      const { useMealPlanStore } = require('@/lib/stores/mealPlanStore');
+      const dates = useMealPlanStore.getState().getPurchasedDates(weekMealPlan.id);
+      setPurchasedDates(dates);
+    }
+  }, [weekMealPlan]);
   
   // Week navigation
   const handlePreviousWeek = () => {
@@ -101,13 +113,50 @@ export default function MealPlanPage() {
       return;
     }
     
+    // Open the grocery list options modal
+    setIsGroceryOptionsOpen(true);
+  };
+  
+  const handleGenerateList = async (
+    generationType: 'daily' | 'weekly' | 'full',
+    startDate: string,
+    endDate?: string
+  ) => {
+    if (!weekMealPlan) return;
+    
     try {
-      await groceryService.generateFromMealPlan(weekMealPlan, recipes, ingredients);
+      // Get purchased dates from store
+      const { useMealPlanStore } = await import('@/lib/stores/mealPlanStore');
+      const purchasedDates = useMealPlanStore.getState().getPurchasedDates(weekMealPlan.id);
+      
+      if (generationType === 'daily') {
+        await groceryService.generateDailyList(
+          weekMealPlan,
+          startDate,
+          recipes,
+          ingredients,
+          purchasedDates
+        );
+      } else if (generationType === 'weekly' && endDate) {
+        await groceryService.generateWeeklyList(
+          weekMealPlan,
+          startDate,
+          endDate,
+          recipes,
+          ingredients,
+          purchasedDates
+        );
+      } else {
+        // Full meal plan
+        await groceryService.generateFromMealPlan(weekMealPlan, recipes, ingredients);
+      }
+      
+      setIsGroceryOptionsOpen(false);
       alert('Grocery list generated successfully!');
       router.push('/grocery-list');
     } catch (error) {
       console.error('Failed to generate grocery list:', error);
-      alert('Failed to generate grocery list. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to generate grocery list. Please try again.');
     }
   };
   
@@ -190,6 +239,7 @@ export default function MealPlanPage() {
           mealPlan={weekMealPlan}
           recipes={recipes}
           weekDates={weekDates}
+          purchasedDates={purchasedDates}
           onMealSlotClick={handleMealSlotClick}
           onRemoveMeal={handleRemoveMeal}
         />
@@ -211,6 +261,19 @@ export default function MealPlanPage() {
             setIsSearchOpen(false);
             setSelectedSlot(null);
           }}
+        />
+      </Modal>
+      
+      {/* Grocery List Options Modal */}
+      <Modal
+        isOpen={isGroceryOptionsOpen}
+        onClose={() => setIsGroceryOptionsOpen(false)}
+        title="Generate Grocery List"
+      >
+        <GroceryListOptions
+          onGenerate={handleGenerateList}
+          onCancel={() => setIsGroceryOptionsOpen(false)}
+          defaultDate={format(new Date(), 'yyyy-MM-dd')}
         />
       </Modal>
     </div>

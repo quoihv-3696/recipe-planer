@@ -24,7 +24,18 @@ export function GroceryListCard({
   onDelete,
 }: GroceryListCardProps) {
   const isPurchased = groceryList.status === 'purchased';
-  const listName = `Grocery List - ${format(parseISO(groceryList.createdAt), 'MMM d, yyyy')}`;
+  
+  // Generate list name based on generation type
+  const getListName = () => {
+    if (groceryList.generationType === 'daily') {
+      return `Daily List - ${format(parseISO(groceryList.targetDates[0]), 'MMM d, yyyy')}`;
+    } else if (groceryList.generationType === 'weekly') {
+      const startDate = format(parseISO(groceryList.targetDates[0]), 'MMM d');
+      const endDate = format(parseISO(groceryList.targetDates[groceryList.targetDates.length - 1]), 'MMM d, yyyy');
+      return `Weekly List - ${startDate} to ${endDate}`;
+    }
+    return `Full Meal Plan - ${format(parseISO(groceryList.generatedDate || groceryList.createdAt), 'MMM d, yyyy')}`;
+  };
   
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
@@ -32,10 +43,17 @@ export function GroceryListCard({
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900">{listName}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">{getListName()}</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Created {format(parseISO(groceryList.createdAt), 'MMM d, yyyy')}
+              Generated {format(parseISO(groceryList.generatedDate || groceryList.createdAt), 'MMM d, yyyy')}
             </p>
+            {groceryList.targetDates && groceryList.targetDates.length > 0 && (
+              <p className="text-xs text-gray-500 mt-1">
+                For meals on: {groceryList.targetDates.length === 1 
+                  ? format(parseISO(groceryList.targetDates[0]), 'MMM d, yyyy')
+                  : `${groceryList.targetDates.length} days`}
+              </p>
+            )}
           </div>
           
           {/* Status Badge */}

@@ -15,8 +15,9 @@ export interface WeeklyCalendarProps {
   mealPlan: MealPlan;
   recipes: Recipe[];
   weekDates: string[];
+  purchasedDates?: string[];
   onMealSlotClick: (date: string, mealType: MealType) => void;
-  onRemoveMeal: (date: string, mealType: MealType, recipeId: string) => void; // Added recipeId parameter
+  onRemoveMeal: (date: string, mealType: MealType, recipeId: string) => void;
 }
 
 const mealTypes: MealType[] = ['breakfast', 'lunch', 'dinner'];
@@ -25,11 +26,17 @@ export function WeeklyCalendar({
   mealPlan,
   recipes,
   weekDates,
+  purchasedDates = [],
   onMealSlotClick,
   onRemoveMeal,
 }: WeeklyCalendarProps) {
   // Create a map of recipes by ID for quick lookup
   const recipeMap = new Map(recipes.map(r => [r.id, r]));
+  
+  // Check if a date has purchased ingredients
+  const isDatePurchased = (date: string): boolean => {
+    return purchasedDates.includes(date);
+  };
   
   // Get all recipes for a specific date and meal type
   const getRecipesForSlot = (date: string, mealType: MealType): Recipe[] => {
@@ -37,7 +44,8 @@ export function WeeklyCalendar({
       m => m.date === date && m.mealType === mealType
     );
     
-    if (!assignment || assignment.recipeIds.length === 0) {
+    // Handle backward compatibility: recipeIds might be undefined in old data
+    if (!assignment || !assignment.recipeIds || assignment.recipeIds.length === 0) {
       return [];
     }
     
@@ -58,8 +66,15 @@ export function WeeklyCalendar({
                 Meal
               </th>
               {weekDates.map(date => (
-                <th key={date} className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                  <div>{format(parseISO(date), 'EEE')}</div>
+                <th key={date} className="px-4 py-3 text-center text-sm font-semibold text-gray-700 relative">
+                  <div className="flex items-center justify-center gap-1">
+                    <span>{format(parseISO(date), 'EEE')}</span>
+                    {isDatePurchased(date) && (
+                      <span className="inline-flex items-center justify-center w-5 h-5 bg-green-100 text-green-600 rounded-full text-xs" title="Groceries purchased for this date">
+                        ✓
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-500 font-normal">
                     {format(parseISO(date), 'MMM d')}
                   </div>

@@ -27,6 +27,18 @@ export interface GroceryList {
   /** Date of purchase (null if not purchased, ISO 8601 format) */
   purchaseDate: string | null;
   
+  /** Generation type: 'daily' for single day, 'weekly' for week, 'full' for entire meal plan */
+  generationType: 'daily' | 'weekly' | 'full';
+  
+  /** Date when this list was generated (ISO 8601 format) */
+  generatedDate: string;
+  
+  /** Target dates this list covers (array of ISO 8601 date strings) */
+  targetDates: string[];
+  
+  /** Dates for which ingredients were purchased (array of ISO 8601 date strings) */
+  purchasedDates: string[];
+  
   /** Creation timestamp (ISO 8601 format) */
   createdAt: string;
 }
@@ -87,6 +99,7 @@ export function isGroceryList(obj: any): obj is GroceryList {
 export function createGroceryList(
   partial: Partial<GroceryList> & Pick<GroceryList, 'mealPlanId'>
 ): GroceryList {
+  const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(),
     items: [],
@@ -94,7 +107,11 @@ export function createGroceryList(
     status: 'not_purchased',
     actualCost: null,
     purchaseDate: null,
-    createdAt: new Date().toISOString(),
+    generationType: 'full',
+    generatedDate: now,
+    targetDates: [],
+    purchasedDates: [],
+    createdAt: now,
     ...partial,
   };
 }

@@ -13,6 +13,9 @@ interface MealPlanState {
   isLoading: boolean;
   error: string | null;
   
+  // Purchased dates tracking: Record<mealPlanId, string[]>
+  purchasedDates: Record<string, string[]>;
+  
   // Actions
   setMealPlans: (plans: MealPlan[]) => void;
   setCurrentPlan: (planId: string | null) => void;
@@ -22,15 +25,18 @@ interface MealPlanState {
   addMealAssignment: (planId: string, assignment: MealAssignment) => void;
   removeMealAssignment: (planId: string, date: string, mealType: string) => void;
   updateMealAssignment: (planId: string, date: string, mealType: string, recipeIds: string[]) => void;
+  addPurchasedDates: (planId: string, dates: string[]) => void;
+  getPurchasedDates: (planId: string) => string[];
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
 }
 
-export const useMealPlanStore = create<MealPlanState>((set) => ({
+export const useMealPlanStore = create<MealPlanState>((set, get) => ({
   mealPlans: [],
   currentPlanId: null,
   isLoading: false,
   error: null,
+  purchasedDates: {},
   
   setMealPlans: (plans) => set({ mealPlans: plans }),
   
@@ -46,10 +52,14 @@ export const useMealPlanStore = create<MealPlanState>((set) => ({
     ),
   })),
   
-  deleteMealPlan: (id) => set((state) => ({
-    mealPlans: state.mealPlans.filter((plan) => plan.id !== id),
-    currentPlanId: state.currentPlanId === id ? null : state.currentPlanId,
-  })),
+  deleteMealPlan: (id) => set((state) => {
+    const { [id]: removed, ...restDates } = state.purchasedDates;
+    return {
+      mealPlans: state.mealPlans.filter((plan) => plan.id !== id),
+      currentPlanId: state.currentPlanId === id ? null : state.currentPlanId,
+      purchasedDates: restDates,
+    };
+  }),
   
   addMealAssignment: (planId, assignment) => set((state) => ({
     mealPlans: state.mealPlans.map((plan) =>
@@ -86,6 +96,21 @@ export const useMealPlanStore = create<MealPlanState>((set) => ({
         : plan
     ),
   })),
+  
+  addPurchasedDates: (planId, dates) => set((state) => {
+    const existingDates = state.purchasedDates[planId] || [];
+    const uniqueDates = [...new Set([...existingDates, ...dates])];
+    return {
+      purchasedDates: {
+        ...state.purchasedDates,
+        [planId]: uniqueDates,
+      },
+    };
+  }),
+  
+  getPurchasedDates: (planId) => {
+    return get().purchasedDates[planId] || [];
+  },
   
   setLoading: (isLoading) => set({ isLoading }),
   
