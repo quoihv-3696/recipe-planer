@@ -149,26 +149,26 @@
 **Why Independent**: Standalone inventory management, ingredients can later be linked to recipes
 
 ### Mock Data
-- [ ] T048 [P] [US3] Create mock ingredient data in src/data/mockIngredients.ts with 10-15 ingredients
+- [X] T048 [P] [US3] Create mock ingredient data in src/data/mockIngredients.ts with 10-15 ingredients
 
 ### State Management
-- [ ] T049 [US3] Create ingredient store in src/lib/stores/ingredientStore.ts with CRUD actions
-- [ ] T050 [US3] Create useIngredients hook in src/lib/hooks/useIngredients.ts
+- [X] T049 [US3] Create ingredient store in src/lib/stores/ingredientStore.ts with CRUD actions
+- [X] T050 [US3] Create useIngredients hook in src/lib/hooks/useIngredients.ts
 
 ### Service Layer
-- [ ] T051 [US3] Implement ingredientService in src/lib/services/ingredientService.ts with CRUD operations
-- [ ] T052 [US3] Add check for ingredient usage in recipes before deletion
+- [X] T051 [US3] Implement ingredientService in src/lib/services/ingredientService.ts with CRUD operations
+- [X] T052 [US3] Add check for ingredient usage in recipes before deletion
 
 ### UI Components
-- [ ] T053 [US3] Create IngredientCard component in src/components/ingredient/IngredientCard.tsx
-- [ ] T054 [US3] Create IngredientForm component in src/components/ingredient/IngredientForm.tsx
-- [ ] T055 [US3] Add form validation for ingredient form (required fields, positive prices)
+- [X] T053 [US3] Create IngredientCard component in src/components/ingredient/IngredientCard.tsx
+- [X] T054 [US3] Create IngredientForm component in src/components/ingredient/IngredientForm.tsx
+- [X] T055 [US3] Add form validation for ingredient form (required fields, positive prices)
 
 ### Pages
-- [ ] T056 [US3] Create ingredients page in src/app/ingredients/page.tsx with card grid
-- [ ] T057 [US3] Add "Add Ingredient" button and modal to ingredients page
-- [ ] T058 [US3] Implement edit and delete functionality on ingredient cards
-- [ ] T059 [US3] Add warning modal when deleting ingredient used in recipes
+- [X] T056 [US3] Create ingredients page in src/app/ingredients/page.tsx with card grid
+- [X] T057 [US3] Add "Add Ingredient" button and modal to ingredients page
+- [X] T058 [US3] Implement edit and delete functionality on ingredient cards
+- [X] T059 [US3] Add warning modal when deleting ingredient used in recipes
 
 ### Integration
 - [ ] T060 [US3] Update ingredient selector in RecipeForm to use live ingredient data from store
