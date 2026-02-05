@@ -133,6 +133,64 @@ As a home cook, I want to search recipes by name or ingredient so that I can qui
 
 ---
 
+### User Story 8 - Track Recipe Usage Statistics (Priority: P2)
+
+As a home cook, I want to see how often I use each recipe and view usage statistics so that I can identify my favorite recipes and discover which dishes I cook most frequently.
+
+**Why this priority**: Provides valuable insights into cooking habits and helps users discover patterns in their meal choices. Enhances the home page with meaningful data.
+
+**Independent Test**: Can be tested by creating meal plans with various recipes over different time periods, then verifying that recipe cards show usage counts and the statistics chart displays accurate data.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am on the Home page, **When** I view recipe cards, **Then** each card shows a badge with the number of times that recipe was used this week and this month
+2. **Given** I am on the Recipes page, **When** I view the page, **Then** I see a chart/statistics section showing recipe usage for the current week and month
+3. **Given** I am viewing the recipe statistics chart, **When** I look at the data, **Then** I see each recipe's name and the count of how many times it was assigned to meal slots
+4. **Given** I am viewing recipe usage data, **When** I select a different time period (week vs month), **Then** the statistics update to reflect the selected period
+5. **Given** a recipe has been used multiple times, **When** I view its card, **Then** the usage count is displayed prominently (e.g., "Used 5 times this week, 12 times this month")
+
+---
+
+### User Story 9 - Multiple Recipes per Meal Slot (Priority: P2)
+
+As a home cook, I want to assign multiple recipes to a single meal slot so that I can plan variety within one meal (e.g., main dish + side dish + dessert).
+
+**Why this priority**: Increases flexibility in meal planning by allowing users to plan complete meals with multiple dishes rather than being limited to one recipe per slot.
+
+**Independent Test**: Can be tested by opening a meal slot in the meal plan, adding multiple recipes to the same slot, and verifying they all display correctly and contribute to the grocery list generation.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am viewing a meal slot in the meal plan, **When** I click to add a recipe, **Then** I see an option to add multiple recipes to the same meal
+2. **Given** I have added one recipe to a meal slot, **When** I click to add another recipe, **Then** both recipes are displayed in that meal slot
+3. **Given** a meal slot has multiple recipes, **When** I view the meal slot, **Then** all recipes are shown as separate cards within that slot
+4. **Given** I have multiple recipes in a meal slot, **When** I generate a grocery list, **Then** ingredients from all recipes in all meal slots are included
+5. **Given** a meal slot has multiple recipes, **When** I click on any recipe, **Then** I am taken to that recipe's detail page
+6. **Given** I am on mobile, **When** I view a meal slot with multiple recipes, **Then** they stack vertically within the slot
+
+---
+
+### User Story 10 - Daily and Weekly Grocery List Generation (Priority: P2)
+
+As a home cook, I want to generate grocery lists for specific days or weeks and track which days I've already purchased ingredients for, so that I can avoid buying duplicate ingredients.
+
+**Why this priority**: Provides more granular control over shopping and prevents waste by tracking what has already been purchased for specific dates.
+
+**Independent Test**: Can be tested by creating meal plans for different days, generating daily and weekly grocery lists, marking days as purchased, and verifying that subsequent lists exclude already-purchased ingredients.
+
+**Acceptance Scenarios**:
+
+1. **Given** I am on the Meal Plan page, **When** I select "Generate Grocery List", **Then** I see options to generate by specific day or by week
+2. **Given** I have chosen to generate a daily grocery list, **When** I select a specific date, **Then** a grocery list is created containing only ingredients for meals on that date
+3. **Given** I have chosen to generate a weekly grocery list, **When** I select a date range, **Then** a grocery list is created containing all ingredients for that week, excluding days already purchased
+4. **Given** I am viewing a grocery list, **When** I look at the list details, **Then** I see the generation date and the target date(s) this list is for
+5. **Given** I have a grocery list for specific dates, **When** I mark it as purchased, **Then** those dates are recorded as "already purchased"
+6. **Given** I generate a new grocery list for a week, **When** some days have already been purchased, **Then** ingredients for those days are automatically excluded from the new list
+7. **Given** I am viewing the grocery list page, **When** I see my lists, **Then** each list clearly shows: "Generated on [date]" and "For meals on [date/date range]"
+8. **Given** I have marked ingredients as purchased for certain days, **When** I view the meal plan, **Then** those days are visually indicated as "ingredients purchased"
+
+---
+
 ## Functional Requirements *(mandatory)*
 
 ### FR1: Recipe Management
@@ -152,7 +210,9 @@ As a home cook, I want to search recipes by name or ingredient so that I can qui
 ### FR3: Meal Planning
 - System MUST support weekly meal plan view showing 7 days
 - System MUST support multiple meal slots per day: breakfast, lunch, dinner
-- System MUST allow users to assign recipes to specific meal slots
+- System MUST allow users to assign multiple recipes to a single meal slot
+- System MUST display all recipes within a meal slot clearly (stacked or side-by-side based on viewport)
+- System MUST allow users to remove individual recipes from a meal slot without affecting other recipes in the same slot
 - System MUST allow users to search recipes by recipe name or ingredient name when assigning meals
 - System MUST persist meal plans in browser localStorage or IndexedDB
 - System MUST allow users to create multiple meal plans (different weeks)
@@ -195,6 +255,25 @@ As a home cook, I want to search recipes by name or ingredient so that I can qui
 - System MUST provide "Export Data" function to download all data as JSON file
 - System MUST provide "Import Data" function to restore data from JSON file
 - System MUST handle data versioning for future schema changes
+
+### FR10: Recipe Usage Statistics
+- System MUST track how many times each recipe is assigned to meal slots
+- System MUST calculate recipe usage counts for current week (last 7 days)
+- System MUST calculate recipe usage counts for current month (last 30 days)
+- System MUST display usage count badges on recipe cards on the Home page showing "X times this week, Y times this month"
+- System MUST provide a statistics chart/view on the Recipes page showing all recipes with their usage counts
+- System MUST allow users to filter statistics by time period (week/month)
+- System MUST update usage statistics in real-time when meal plans are modified
+
+### FR11: Daily and Weekly Grocery List Generation
+- System MUST provide options to generate grocery lists by specific day or by week
+- System MUST allow users to select target date(s) when generating a grocery list
+- System MUST store generation date and target date(s) for each grocery list
+- System MUST track which dates have been marked as "ingredients purchased"
+- System MUST exclude ingredients for already-purchased dates when generating new grocery lists
+- System MUST display on each grocery list: "Generated on [date]" and "For meals on [date/date range]"
+- System MUST visually indicate purchased dates in the meal plan view
+- System MUST aggregate ingredients across all recipes in selected meal slots (including multiple recipes per slot)
 
 ---
 
@@ -266,12 +345,15 @@ As a home cook, I want to search recipes by name or ingredient so that I can qui
 - **meals**: Array of meal assignments
   - date (ISO date string)
   - mealType (enum: "breakfast", "lunch", "dinner")
-  - recipeId (UUID reference to Recipe)
+  - recipeIds (Array of UUIDs - references to multiple Recipes)
 - **createdAt**: Creation timestamp
 
 ### GroceryList
 - **id**: Unique identifier (UUID)
 - **mealPlanId**: Reference to source meal plan (UUID)
+- **generationType**: Type of list generation (enum: "daily", "weekly")
+- **generatedDate**: Date when list was generated (ISO date string)
+- **targetDates**: Array of dates this list is for (ISO date strings)
 - **items**: Array of grocery items
   - ingredientId (UUID reference to Ingredient)
   - quantity (number)
@@ -281,6 +363,7 @@ As a home cook, I want to search recipes by name or ingredient so that I can qui
 - **status**: Purchase status (enum: "not_purchased", "purchased")
 - **actualCost**: Actual amount spent (number, null if not purchased)
 - **purchaseDate**: Date of purchase (ISO date string, null if not purchased)
+- **purchasedDates**: Array of dates marked as purchased (ISO date strings) - populated when status changes to "purchased"
 - **createdAt**: Creation timestamp
 
 ---

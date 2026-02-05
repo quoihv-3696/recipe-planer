@@ -25,10 +25,10 @@ export function Sidebar({ mealPlans, recipes }: SidebarProps) {
   
   // Find today's meals across all meal plans
   const todaysMeals = useMemo(() => {
-    const meals: { mealType: MealType; recipe: Recipe | null }[] = [
-      { mealType: 'breakfast', recipe: null },
-      { mealType: 'lunch', recipe: null },
-      { mealType: 'dinner', recipe: null },
+    const meals: { mealType: MealType; recipes: Recipe[] }[] = [
+      { mealType: 'breakfast', recipes: [] },
+      { mealType: 'lunch', recipes: [] },
+      { mealType: 'dinner', recipes: [] },
     ];
     
     // Create recipe map for fast lookup
@@ -40,8 +40,13 @@ export function Sidebar({ mealPlans, recipes }: SidebarProps) {
       
       for (const assignment of todaysAssignments) {
         const mealIndex = meals.findIndex(m => m.mealType === assignment.mealType);
-        if (mealIndex !== -1 && !meals[mealIndex].recipe) {
-          meals[mealIndex].recipe = recipeMap.get(assignment.recipeId) || null;
+        if (mealIndex !== -1 && meals[mealIndex].recipes.length === 0) {
+          // Get all recipes from the recipeIds array (with null check)
+          const recipeIds = assignment.recipeIds || [];
+          const mealRecipes = recipeIds
+            .map(id => recipeMap.get(id))
+            .filter((recipe): recipe is Recipe => recipe !== undefined);
+          meals[mealIndex].recipes = mealRecipes;
         }
       }
     }
@@ -65,7 +70,7 @@ export function Sidebar({ mealPlans, recipes }: SidebarProps) {
       </p>
       
       <div className="space-y-4">
-        {todaysMeals.map(({ mealType, recipe }) => (
+        {todaysMeals.map(({ mealType, recipes }) => (
           <div key={mealType} className="border-b border-gray-100 pb-4 last:border-b-0">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">
@@ -76,35 +81,45 @@ export function Sidebar({ mealPlans, recipes }: SidebarProps) {
               <h3 className="font-semibold text-gray-900 capitalize">
                 {mealType}
               </h3>
+              {recipes.length > 1 && (
+                <span className="text-xs bg-blue-600 text-white rounded-full px-2 py-0.5">
+                  {recipes.length}
+                </span>
+              )}
             </div>
             
-            {recipe ? (
-              <button
-                onClick={() => handleMealClick(recipe)}
-                className="w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-              >
-                <div className="flex items-start gap-3">
-                  {recipe.imageUrl ? (
-                    <img
-                      src={recipe.imageUrl}
-                      alt={recipe.name}
-                      className="w-16 h-16 object-cover rounded"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
-                      <span className="text-2xl">🍳</span>
+            {recipes.length > 0 ? (
+              <div className="space-y-2">
+                {recipes.map((recipe) => (
+                  <button
+                    key={recipe.id}
+                    onClick={() => handleMealClick(recipe)}
+                    className="w-full text-left p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      {recipe.imageUrl ? (
+                        <img
+                          src={recipe.imageUrl}
+                          alt={recipe.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center flex-shrink-0">
+                          <span className="text-2xl">🍳</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
+                          {recipe.name}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {recipe.ingredients.length} ingredients
+                        </p>
+                      </div>
                     </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {recipe.name}
-                    </p>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {recipe.ingredients.length} ingredients
-                    </p>
-                  </div>
-                </div>
-              </button>
+                  </button>
+                ))}
+              </div>
             ) : (
               <div className="p-3 bg-gray-50 rounded-lg text-center">
                 <p className="text-sm text-gray-500">No meal planned</p>
@@ -114,7 +129,7 @@ export function Sidebar({ mealPlans, recipes }: SidebarProps) {
         ))}
       </div>
       
-      {todaysMeals.every(m => !m.recipe) && (
+      {todaysMeals.every(m => m.recipes.length === 0) && (
         <div className="mt-6 text-center">
           <p className="text-gray-600 mb-4">No meals planned for today</p>
           <button

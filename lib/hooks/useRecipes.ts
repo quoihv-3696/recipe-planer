@@ -86,6 +86,25 @@ export function useRecipes() {
     }
   };
   
+  const getUsageStats = async () => {
+    try {
+      setError(null);
+      return await recipeService.getRecipeUsageStats();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get usage stats');
+      return null;
+    }
+  };
+  
+  const getRecipeUsageCount = async (recipeId: string, period: 'week' | 'month') => {
+    try {
+      return await recipeService.getUsageForRecipe(recipeId, period);
+    } catch (err) {
+      console.error('Failed to get recipe usage count:', err);
+      return 0;
+    }
+  };
+  
   return {
     recipes,
     isLoading,
@@ -96,5 +115,7 @@ export function useRecipes() {
     updateRecipe: updateRecipeById,
     deleteRecipe: deleteRecipeById,
     searchRecipes,
+    getUsageStats,
+    getRecipeUsageCount,
   };
 }

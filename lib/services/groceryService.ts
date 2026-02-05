@@ -156,7 +156,7 @@ async function generateFromMealPlan(
 ): Promise<GroceryList> {
   try {
     // Get recipes used in meal plan
-    const recipeIds = new Set(mealPlan.meals.map(m => m.recipeId));
+    const recipeIds = new Set(mealPlan.meals.flatMap(m => m.recipeIds));
     const usedRecipes = recipes.filter(r => recipeIds.has(r.id));
     
     // Aggregate ingredients

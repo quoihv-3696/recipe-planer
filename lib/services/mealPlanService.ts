@@ -98,6 +98,7 @@ export async function deleteMealPlan(id: string): Promise<boolean> {
 
 /**
  * Add a meal assignment to a plan
+ * If assignment already exists for the date/mealType, append the new recipeIds to existing ones
  */
 export async function addMealAssignment(
   planId: string,
@@ -109,14 +110,31 @@ export async function addMealAssignment(
       throw new Error(`Meal plan ${planId} not found`);
     }
     
-    // Remove existing assignment for same date/mealType if any
-    const filteredMeals = plan.meals.filter(
-      (m) => !(m.date === assignment.date && m.mealType === assignment.mealType)
+    // Check if assignment already exists for same date/mealType
+    const existingIndex = plan.meals.findIndex(
+      (m) => m.date === assignment.date && m.mealType === assignment.mealType
     );
+    
+    let updatedMeals: MealAssignment[];
+    
+    if (existingIndex >= 0) {
+      // Append new recipeIds to existing assignment
+      const existing = plan.meals[existingIndex];
+      const mergedRecipeIds = [...new Set([...existing.recipeIds, ...assignment.recipeIds])];
+      
+      updatedMeals = plan.meals.map((m, i) =>
+        i === existingIndex
+          ? { ...m, recipeIds: mergedRecipeIds }
+          : m
+      );
+    } else {
+      // Add new assignment
+      updatedMeals = [...plan.meals, assignment];
+    }
     
     const updatedPlan: MealPlan = {
       ...plan,
-      meals: [...filteredMeals, assignment],
+      meals: updatedMeals,
     };
     
     return await updateMealPlan(planId, updatedPlan);
@@ -150,6 +168,46 @@ export async function removeMealAssignment(
     return await updateMealPlan(planId, updatedPlan);
   } catch (error) {
     console.error('Error removing meal assignment:', error);
+    throw error;
+  }
+}
+
+/**
+ * Remove a specific recipe from a meal slot
+ * If it's the last recipe, removes the entire assignment
+ */
+export async function removeRecipeFromSlot(
+  planId: string,
+  date: string,
+  mealType: string,
+  recipeId: string
+): Promise<MealPlan> {
+  try {
+    const plan = await getMealPlanById(planId);
+    if (!plan) {
+      throw new Error(`Meal plan ${planId} not found`);
+    }
+    
+    const updatedMeals = plan.meals
+      .map(m => {
+        if (m.date === date && m.mealType === mealType) {
+          // Remove the specific recipe from recipeIds array
+          const newRecipeIds = m.recipeIds.filter(id => id !== recipeId);
+          return { ...m, recipeIds: newRecipeIds };
+        }
+        return m;
+      })
+      // Remove assignments with no recipes left
+      .filter(m => m.recipeIds.length > 0);
+    
+    const updatedPlan: MealPlan = {
+      ...plan,
+      meals: updatedMeals,
+    };
+    
+    return await updateMealPlan(planId, updatedPlan);
+  } catch (error) {
+    console.error('Error removing recipe from slot:', error);
     throw error;
   }
 }
@@ -217,6 +275,7 @@ export const mealPlanService = {
   deleteMealPlan,
   addMealAssignment,
   removeMealAssignment,
+  removeRecipeFromSlot,
   generateWeekDates,
   getWeekRange,
   getNextWeek,

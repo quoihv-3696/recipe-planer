@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRecipes } from '@/lib/hooks/useRecipes';
 import { useMealPlan } from '@/lib/hooks/useMealPlan';
@@ -14,15 +14,40 @@ import { RecipeCard } from '@/components/recipe/RecipeCard';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Button } from '@/components/common/Button';
 import { seedDatabase } from '@/lib/utils/seedDatabase';
+import type { RecipeUsageSummary } from '@/types/RecipeStats';
 
 export default function HomePage() {
   const router = useRouter();
-  const { recipes, isLoading: recipesLoading } = useRecipes();
+  const { recipes, isLoading: recipesLoading, getUsageStats } = useRecipes();
   const { mealPlans, isLoading: plansLoading } = useMealPlan();
   const [isSeeding, setIsSeeding] = useState(false);
+  const [usageStats, setUsageStats] = useState<RecipeUsageSummary | null>(null);
   
   // Show latest 6 recipes
   const latestRecipes = recipes.slice(0, 6);
+  
+  // Load usage stats when recipes are available
+  useEffect(() => {
+    if (recipes.length > 0) {
+      loadUsageStats();
+    }
+  }, [recipes.length, mealPlans.length]); // Reload when recipes or meal plans change
+  
+  const loadUsageStats = async () => {
+    const stats = await getUsageStats();
+    if (stats) {
+      setUsageStats(stats);
+    }
+  };
+  
+  const getRecipeUsage = (recipeId: string) => {
+    if (!usageStats) return { weekly: 0, monthly: 0 };
+    const stat = usageStats.stats.find(s => s.recipeId === recipeId);
+    return {
+      weekly: stat?.weeklyCount || 0,
+      monthly: stat?.monthlyCount || 0,
+    };
+  };
   
   const handleSeedDatabase = async () => {
     setIsSeeding(true);
@@ -95,13 +120,18 @@ export default function HomePage() {
               </div>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {latestRecipes.map((recipe) => (
-                  <RecipeCard
-                    key={recipe.id}
-                    recipe={recipe}
-                    onClick={(id) => router.push(`/recipes/detail?id=${id}`)}
-                  />
-                ))}
+                {latestRecipes.map((recipe) => {
+                  const usage = getRecipeUsage(recipe.id);
+                  return (
+                    <RecipeCard
+                      key={recipe.id}
+                      recipe={recipe}
+                      onClick={(id) => router.push(`/recipes/detail?id=${id}`)}
+                      weeklyUsage={usage.weekly}
+                      monthlyUsage={usage.monthly}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}

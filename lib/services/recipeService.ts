@@ -139,3 +139,113 @@ export async function searchRecipes(query: string, ingredients?: { id: string; n
     throw error;
   }
 }
+
+/**
+ * Get recipe usage statistics
+ * Calculates how many times each recipe is used in meal plans
+ */
+export async function getRecipeUsageStats(): Promise<import('@/types/RecipeStats').RecipeUsageSummary> {
+  try {
+    const recipes = await getAllRecipes();
+    const mealPlans = await indexedDB.getItemsByPrefix<import('@/types/MealPlan').MealPlan>(
+      indexedDB.KEY_PREFIXES.MEAL_PLAN
+    );
+    
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    const stats = recipes.map(recipe => {
+      let weeklyCount = 0;
+      let monthlyCount = 0;
+      let lastUsedDate: string | null = null;
+      
+      // Count occurrences in meal plans
+      mealPlans.forEach(plan => {
+        plan.meals.forEach(meal => {
+          const mealDate = new Date(meal.date);
+          
+          // Support both old format (recipeId) and new format (recipeIds)
+          const recipeIds = Array.isArray((meal as any).recipeIds) 
+            ? (meal as any).recipeIds 
+            : [(meal as any).recipeId].filter(Boolean);
+          
+          if (recipeIds.includes(recipe.id)) {
+            // Update last used date
+            if (!lastUsedDate || meal.date > lastUsedDate) {
+              lastUsedDate = meal.date;
+            }
+            
+            // Count for weekly
+            if (mealDate >= weekAgo) {
+              weeklyCount++;
+            }
+            
+            // Count for monthly
+            if (mealDate >= monthAgo) {
+              monthlyCount++;
+            }
+          }
+        });
+      });
+      
+      return {
+        recipeId: recipe.id,
+        recipeName: recipe.name,
+        weeklyCount,
+        monthlyCount,
+        lastUsedDate,
+      };
+    });
+    
+    return {
+      stats,
+      calculatedAt: now.toISOString(),
+    };
+  } catch (error) {
+    console.error('Error calculating recipe usage stats:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get usage count for a specific recipe in a time period
+ */
+export async function getUsageForRecipe(
+  recipeId: string, 
+  period: 'week' | 'month'
+): Promise<number> {
+  try {
+    const mealPlans = await indexedDB.getItemsByPrefix<import('@/types/MealPlan').MealPlan>(
+      indexedDB.KEY_PREFIXES.MEAL_PLAN
+    );
+    
+    const now = new Date();
+    const cutoffDate = period === 'week' 
+      ? new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      : new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    
+    let count = 0;
+    
+    mealPlans.forEach(plan => {
+      plan.meals.forEach(meal => {
+        const mealDate = new Date(meal.date);
+        if (mealDate >= cutoffDate) {
+          // Support both old format (recipeId) and new format (recipeIds)
+          const recipeIds = Array.isArray((meal as any).recipeIds) 
+            ? (meal as any).recipeIds 
+            : [(meal as any).recipeId].filter(Boolean);
+          
+          if (recipeIds.includes(recipeId)) {
+            count++;
+          }
+        }
+      });
+    });
+    
+    return count;
+  } catch (error) {
+    console.error(`Error getting usage for recipe ${recipeId}:`, error);
+    throw error;
+  }
+}

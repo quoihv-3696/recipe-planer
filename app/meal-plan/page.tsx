@@ -62,29 +62,31 @@ export default function MealPlanPage() {
         {
           date: selectedSlot.date,
           mealType: selectedSlot.mealType,
-          recipeId: recipe.id
+          recipeIds: [recipe.id] // Will be appended to existing recipes
         }
       );
       await reloadMealPlans();
-      setIsSearchOpen(false);
-      setSelectedSlot(null);
+      // Keep modal open so user can add another recipe
+      // setIsSearchOpen(false); // Commented out to keep modal open
+      // setSelectedSlot(null); // Keep slot selected
+      alert(`${recipe.name} added! Add another recipe or close this dialog.`);
     } catch (error) {
       console.error('Failed to assign recipe:', error);
       alert('Failed to assign recipe. Please try again.');
     }
   };
   
-  const handleRemoveMeal = async (date: string, mealType: MealType) => {
+  const handleRemoveMeal = async (date: string, mealType: MealType, recipeId: string) => {
     if (!weekMealPlan) return;
     
-    if (!confirm('Remove this meal from the plan?')) return;
+    if (!confirm('Remove this recipe from the meal slot?')) return;
     
     try {
-      await mealPlanService.removeMealAssignment(weekMealPlan.id, date, mealType);
+      await mealPlanService.removeRecipeFromSlot(weekMealPlan.id, date, mealType, recipeId);
       await reloadMealPlans();
     } catch (error) {
-      console.error('Failed to remove meal:', error);
-      alert('Failed to remove meal. Please try again.');
+      console.error('Failed to remove recipe:', error);
+      alert('Failed to remove recipe. Please try again.');
     }
   };
   

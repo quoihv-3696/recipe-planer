@@ -6,12 +6,14 @@
 
 'use client';
 
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRecipes } from '@/lib/hooks/useRecipes';
 import { useIngredients } from '@/lib/hooks/useIngredients';
 import { RecipeCard } from '@/components/recipe/RecipeCard';
+import RecipeStatsChart from '@/components/recipe/RecipeStatsChart';
 import type { RecipeFormData } from '@/components/recipe/RecipeForm';
+import type { RecipeUsageSummary } from '@/types/RecipeStats';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
@@ -22,11 +24,23 @@ const RecipeForm = lazy(() => import('@/components/recipe/RecipeForm').then(modu
 
 export default function RecipesPage() {
   const router = useRouter();
-  const { recipes, isLoading, error, createRecipe } = useRecipes();
+  const { recipes, isLoading, error, createRecipe, getUsageStats } = useRecipes();
   const { ingredients } = useIngredients();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [usageStats, setUsageStats] = useState<RecipeUsageSummary | null>(null);
+  
+  // Load usage statistics when recipes are loaded
+  useEffect(() => {
+    const loadStats = async () => {
+      if (recipes.length > 0) {
+        const stats = await getUsageStats();
+        setUsageStats(stats);
+      }
+    };
+    loadStats();
+  }, [recipes.length, getUsageStats]);
   
   // Filter recipes based on search query
   const filteredRecipes = useMemo(() => {
@@ -151,6 +165,9 @@ export default function RecipesPage() {
           </p>
         )}
       </div>
+      
+      {/* Recipe Usage Statistics Chart */}
+      {recipes.length > 0 && <RecipeStatsChart usageStats={usageStats} />}
       
       {/* Recipes Grid */}
       {filteredRecipes.length === 0 ? (

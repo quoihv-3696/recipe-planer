@@ -21,7 +21,7 @@ interface MealPlanState {
   deleteMealPlan: (id: string) => void;
   addMealAssignment: (planId: string, assignment: MealAssignment) => void;
   removeMealAssignment: (planId: string, date: string, mealType: string) => void;
-  updateMealAssignment: (planId: string, date: string, mealType: string, recipeId: string) => void;
+  updateMealAssignment: (planId: string, date: string, mealType: string, recipeIds: string[]) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
 }
@@ -72,14 +72,14 @@ export const useMealPlanStore = create<MealPlanState>((set) => ({
     ),
   })),
   
-  updateMealAssignment: (planId, date, mealType, recipeId) => set((state) => ({
+  updateMealAssignment: (planId, date, mealType, recipeIds) => set((state) => ({
     mealPlans: state.mealPlans.map((plan) =>
       plan.id === planId
         ? {
             ...plan,
             meals: plan.meals.map((m) =>
               m.date === date && m.mealType === mealType
-                ? { ...m, recipeId }
+                ? { ...m, recipeIds }
                 : m
             ),
           }

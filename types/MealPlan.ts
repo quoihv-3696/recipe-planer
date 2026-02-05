@@ -27,6 +27,7 @@ export interface MealPlan {
 
 /**
  * Assignment of a recipe to a specific meal slot
+ * Updated to support multiple recipes per meal slot
  */
 export interface MealAssignment {
   /** Meal date (ISO 8601 date format: YYYY-MM-DD) */
@@ -35,8 +36,8 @@ export interface MealAssignment {
   /** Type of meal */
   mealType: MealType;
   
-  /** Reference to Recipe entity ID */
-  recipeId: string;
+  /** References to Recipe entity IDs (array to support multiple recipes per slot) */
+  recipeIds: string[];
 }
 
 /**

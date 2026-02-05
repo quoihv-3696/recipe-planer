@@ -19,15 +19,15 @@ export interface IngredientCardProps {
 
 export function IngredientCard({ ingredient, onEdit, onDelete }: IngredientCardProps) {
   return (
-    <Card className="h-full">
+    <Card className="h-full !p-0">
       <div className="flex flex-col h-full">
         {/* Ingredient Icon */}
-        <div className="w-full h-32 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg -mx-4 -mt-4 mb-4 flex items-center justify-center">
+        <div className="w-full h-32 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
           <span className="text-5xl">🥘</span>
         </div>
         
         {/* Ingredient Info */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
             {ingredient.name}
           </h3>

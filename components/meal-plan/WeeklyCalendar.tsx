@@ -16,7 +16,7 @@ export interface WeeklyCalendarProps {
   recipes: Recipe[];
   weekDates: string[];
   onMealSlotClick: (date: string, mealType: MealType) => void;
-  onRemoveMeal: (date: string, mealType: MealType) => void;
+  onRemoveMeal: (date: string, mealType: MealType, recipeId: string) => void; // Added recipeId parameter
 }
 
 const mealTypes: MealType[] = ['breakfast', 'lunch', 'dinner'];
@@ -31,12 +31,20 @@ export function WeeklyCalendar({
   // Create a map of recipes by ID for quick lookup
   const recipeMap = new Map(recipes.map(r => [r.id, r]));
   
-  // Get recipe for a specific date and meal type
-  const getRecipeForSlot = (date: string, mealType: MealType): Recipe | undefined => {
+  // Get all recipes for a specific date and meal type
+  const getRecipesForSlot = (date: string, mealType: MealType): Recipe[] => {
     const assignment = mealPlan.meals.find(
       m => m.date === date && m.mealType === mealType
     );
-    return assignment ? recipeMap.get(assignment.recipeId) : undefined;
+    
+    if (!assignment || assignment.recipeIds.length === 0) {
+      return [];
+    }
+    
+    // Map recipeIds to Recipe objects, filtering out any not found
+    return assignment.recipeIds
+      .map(id => recipeMap.get(id))
+      .filter((recipe): recipe is Recipe => recipe !== undefined);
   };
   
   return (
@@ -69,9 +77,9 @@ export function WeeklyCalendar({
                   <td key={`${date}-${mealType}`} className="px-2 py-2">
                     <MealSlot
                       mealType={mealType}
-                      recipe={getRecipeForSlot(date, mealType)}
+                      recipes={getRecipesForSlot(date, mealType)}
                       onClick={() => onMealSlotClick(date, mealType)}
-                      onRemove={() => onRemoveMeal(date, mealType)}
+                      onRemove={(recipeId) => onRemoveMeal(date, mealType, recipeId)}
                     />
                   </td>
                 ))}
@@ -93,9 +101,9 @@ export function WeeklyCalendar({
                 <MealSlot
                   key={`${date}-${mealType}`}
                   mealType={mealType}
-                  recipe={getRecipeForSlot(date, mealType)}
+                  recipes={getRecipesForSlot(date, mealType)}
                   onClick={() => onMealSlotClick(date, mealType)}
-                  onRemove={() => onRemoveMeal(date, mealType)}
+                  onRemove={(recipeId) => onRemoveMeal(date, mealType, recipeId)}
                 />
               ))}
             </div>

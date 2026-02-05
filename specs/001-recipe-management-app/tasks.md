@@ -415,6 +415,114 @@
 
 ---
 
+## Phase 12: Recipe Usage Statistics (US8)
+
+**Purpose**: Track and display recipe usage patterns
+
+**Goal**: Show usage counts on recipe cards and statistics chart
+
+### Recipe Usage Tracking
+- [X] T150 Update MealPlan type in src/types/MealPlan.ts to support multiple recipeIds per meal slot (change recipeId to recipeIds: string[])
+- [X] T151 [P] Create RecipeStats interface in src/types/RecipeStats.ts with weeklyCount and monthlyCount fields
+- [X] T152 Implement getRecipeUsageStats() in src/lib/services/recipeService.ts to calculate usage from meal plans
+- [X] T153 Implement getUsageForRecipe(recipeId, period) helper to count occurrences in meal plans
+- [X] T154 Update useRecipes hook in src/lib/hooks/useRecipes.ts to include usage statistics
+
+### Home Page Usage Display
+- [X] T155 Update RecipeCard component in src/components/recipe/RecipeCard.tsx to accept and display usage counts
+- [X] T156 Add usage badge UI to RecipeCard showing "5 times this week, 12 times this month"
+- [X] T157 Update Home page in src/app/page.tsx to fetch and pass usage stats to RecipeCard components
+
+### Recipe Page Statistics Chart
+- [X] T158 Install charting library (e.g., recharts or chart.js)
+- [X] T159 Create RecipeStatsChart component in src/components/recipe/RecipeStatsChart.tsx with bar/column chart
+- [X] T160 Add time period selector (Week/Month) to RecipeStatsChart component
+- [X] T161 Update Recipes page in src/app/recipes/page.tsx to include RecipeStatsChart above recipe grid
+- [X] T162 Style RecipeStatsChart with light theme colors and responsive layout
+
+### Testing Checklist for Recipe Statistics
+- [ ] Verify recipe cards show correct usage counts (week and month)
+- [ ] Verify usage counts update when meal plans are added/modified/deleted
+- [ ] Verify statistics chart displays all recipes with accurate counts
+- [ ] Verify time period selector changes chart data correctly
+- [ ] Verify chart is responsive on mobile devices
+
+---
+
+## Phase 13: Multiple Recipes per Meal Slot (US9)
+
+**Purpose**: Allow multiple recipes in one meal slot
+
+**Goal**: Enable planning complete meals with main dish + sides + dessert
+
+### Data Model Updates
+- [X] T163 Update meal plan service in src/lib/services/mealPlanService.ts to handle recipeIds array
+- [X] T164 Update assignMealToSlot() function to support adding multiple recipes (append to array instead of replace)
+- [X] T165 Add removeRecipeFromSlot(recipeId) function to remove individual recipes from a slot
+- [X] T166 Update grocery list generation to aggregate ingredients from all recipes in all slots
+
+### UI Component Updates
+- [X] T167 Update MealSlot component in src/components/meal-plan/MealSlot.tsx to display multiple recipes
+- [X] T168 Add "Add Another Recipe" button to MealSlot when one or more recipes are assigned
+- [X] T169 Add individual remove button (X) for each recipe in a multi-recipe slot
+- [X] T170 Style multi-recipe slots with card stacking or grid layout (horizontal on desktop, vertical on mobile)
+
+### Meal Plan Page Updates
+- [X] T171 Update meal plan page in src/app/meal-plan/page.tsx to handle multiple recipe assignment
+- [X] T172 Update RecipeSearch modal to stay open after adding a recipe (add "Add Another" flow)
+- [X] T173 Add visual indicator showing how many recipes are in each slot
+
+### Testing Checklist for Multiple Recipes
+- [ ] Verify can add 2+ recipes to same meal slot
+- [ ] Verify each recipe displays correctly within the slot
+- [ ] Verify can remove individual recipes without affecting others
+- [ ] Verify grocery list includes ingredients from all recipes
+- [ ] Verify layout adapts correctly on mobile (vertical stacking)
+- [ ] Verify today's meal sidebar on home page shows all recipes for each meal
+
+---
+
+## Phase 14: Daily/Weekly Grocery List Generation (US10)
+
+**Purpose**: Generate grocery lists by day or week with purchase tracking
+
+**Goal**: Prevent duplicate purchases and track which dates are covered
+
+### Data Model Updates
+- [ ] T174 Update GroceryList type in src/types/GroceryList.ts to add generationType, generatedDate, targetDates, purchasedDates fields
+- [ ] T175 Create PurchasedDates tracking in meal plan store to store which dates have purchased ingredients
+- [ ] T176 Update grocery service in src/lib/services/groceryService.ts with generateDailyList(date) function
+- [ ] T177 Update grocery service with generateWeeklyList(startDate, endDate) function
+- [ ] T178 Implement logic to exclude ingredients for already-purchased dates when generating lists
+
+### Grocery List Generation UI
+- [ ] T179 Create GroceryListOptions component in src/components/grocery/GroceryListOptions.tsx with radio buttons (Daily/Weekly)
+- [ ] T180 Add date picker for daily generation and date range picker for weekly generation
+- [ ] T181 Update meal plan page to show GroceryListOptions modal when clicking "Generate Grocery List"
+- [ ] T182 Add visual indicator on meal plan calendar showing which dates have purchased ingredients (e.g., green checkmark)
+
+### Grocery List Display
+- [ ] T183 Update GroceryListCard component to display "Generated on" and "For meals on" dates
+- [ ] T184 Update grocery list detail view to show target dates clearly
+- [ ] T185 When marking as purchased, automatically record purchasedDates in meal plan tracking
+- [ ] T186 Update grocery list filtering to show lists by target date range
+
+### Purchase Tracking Updates
+- [ ] T187 Update markAsPurchased() function to accept and store purchasedDates
+- [ ] T188 Update meal plan calendar to query purchased dates and display indicators
+- [ ] T189 Add "Already purchased" label/icon on dates with purchased ingredients
+
+### Testing Checklist for Daily/Weekly Lists
+- [ ] Verify can generate grocery list for a single day
+- [ ] Verify can generate grocery list for a week (7 days)
+- [ ] Verify generated list shows generation date and target dates
+- [ ] Verify marking list as purchased records those dates
+- [ ] Verify subsequent lists exclude ingredients from purchased dates
+- [ ] Verify meal plan shows visual indicators for purchased dates
+- [ ] Verify can generate multiple lists for different date ranges
+
+---
+
 ## Execution Strategy
 
 ### Dependencies Between Phases
@@ -441,6 +549,12 @@ Phase 2 (Foundational) ← Must complete before any user stories
     └─→ Phase 10 (Export/Import) ← Can be done anytime after Phase 2
             ↓
         Phase 11 (Polish) ← Final phase, after all features
+            ↓
+        Phase 12 (US8) ← Recipe Usage Statistics (requires Phase 6)
+            ↓
+        Phase 13 (US9) ← Multiple Recipes per Slot (extends Phase 6)
+            ↓
+        Phase 14 (US10) ← Daily/Weekly Grocery Lists (extends Phase 8)
 ```
 
 ### Parallel Execution Opportunities
