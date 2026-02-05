@@ -1,0 +1,107 @@
+/**
+ * WeeklyCalendar Component
+ * 
+ * Displays a weekly meal plan calendar with 7 days and 3 meals per day
+ */
+
+'use client';
+
+import { format, parseISO } from 'date-fns';
+import { MealPlan, MealType } from '@/types/MealPlan';
+import { Recipe } from '@/types/Recipe';
+import { MealSlot } from './MealSlot';
+
+export interface WeeklyCalendarProps {
+  mealPlan: MealPlan;
+  recipes: Recipe[];
+  weekDates: string[];
+  onMealSlotClick: (date: string, mealType: MealType) => void;
+  onRemoveMeal: (date: string, mealType: MealType) => void;
+}
+
+const mealTypes: MealType[] = ['breakfast', 'lunch', 'dinner'];
+
+export function WeeklyCalendar({
+  mealPlan,
+  recipes,
+  weekDates,
+  onMealSlotClick,
+  onRemoveMeal,
+}: WeeklyCalendarProps) {
+  // Create a map of recipes by ID for quick lookup
+  const recipeMap = new Map(recipes.map(r => [r.id, r]));
+  
+  // Get recipe for a specific date and meal type
+  const getRecipeForSlot = (date: string, mealType: MealType): Recipe | undefined => {
+    const assignment = mealPlan.meals.find(
+      m => m.date === date && m.mealType === mealType
+    );
+    return assignment ? recipeMap.get(assignment.recipeId) : undefined;
+  };
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      {/* Desktop View: Grid Layout */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 w-24">
+                Meal
+              </th>
+              {weekDates.map(date => (
+                <th key={date} className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                  <div>{format(parseISO(date), 'EEE')}</div>
+                  <div className="text-xs text-gray-500 font-normal">
+                    {format(parseISO(date), 'MMM d')}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {mealTypes.map(mealType => (
+              <tr key={mealType}>
+                <td className="px-4 py-3 text-sm font-medium text-gray-700 bg-gray-50 capitalize">
+                  {mealType}
+                </td>
+                {weekDates.map(date => (
+                  <td key={`${date}-${mealType}`} className="px-2 py-2">
+                    <MealSlot
+                      mealType={mealType}
+                      recipe={getRecipeForSlot(date, mealType)}
+                      onClick={() => onMealSlotClick(date, mealType)}
+                      onRemove={() => onRemoveMeal(date, mealType)}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Mobile View: Stacked Days */}
+      <div className="md:hidden divide-y divide-gray-200">
+        {weekDates.map(date => (
+          <div key={date} className="p-4">
+            <h3 className="font-semibold text-gray-900 mb-3">
+              {format(parseISO(date), 'EEEE, MMM d')}
+            </h3>
+            <div className="space-y-2">
+              {mealTypes.map(mealType => (
+                <MealSlot
+                  key={`${date}-${mealType}`}
+                  mealType={mealType}
+                  recipe={getRecipeForSlot(date, mealType)}
+                  onClick={() => onMealSlotClick(date, mealType)}
+                  onRemove={() => onRemoveMeal(date, mealType)}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

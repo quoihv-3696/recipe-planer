@@ -12,19 +12,19 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Recipe } from '@/types/Recipe';
 import { Ingredient } from '@/types/Ingredient';
 import { useRecipes } from '@/lib/hooks/useRecipes';
+import { useIngredients } from '@/lib/hooks/useIngredients';
 import { RecipeDetail } from '@/components/recipe/RecipeDetail';
 import { RecipeForm, RecipeFormData } from '@/components/recipe/RecipeForm';
 import { DeleteConfirmModal } from '@/components/recipe/DeleteConfirmModal';
 import { Modal } from '@/components/common/Modal';
-import * as ingredientService from '@/lib/services/ingredientService';
 
 export default function RecipeDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const recipeId = searchParams.get('id');
   const { getRecipe, updateRecipe, deleteRecipe } = useRecipes();
+  const { ingredients } = useIngredients();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -61,10 +61,6 @@ export default function RecipeDetailPage() {
         return;
       }
       setRecipe(loadedRecipe);
-      
-      // Load all ingredients to display names
-      const allIngredients = await ingredientService.getAllIngredients();
-      setIngredients(allIngredients);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load recipe');
     } finally {
@@ -157,7 +153,6 @@ export default function RecipeDetailPage() {
       >
         <RecipeForm
           recipe={recipe}
-          ingredients={ingredients}
           onSubmit={handleEditRecipe}
           onCancel={() => setIsEditModalOpen(false)}
           isSubmitting={isSubmitting}

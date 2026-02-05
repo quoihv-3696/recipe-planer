@@ -171,8 +171,8 @@
 - [X] T059 [US3] Add warning modal when deleting ingredient used in recipes
 
 ### Integration
-- [ ] T060 [US3] Update ingredient selector in RecipeForm to use live ingredient data from store
-- [ ] T061 [US3] Update RecipeDetail to display ingredient details (price, quantity) when available
+- [X] T060 [US3] Update ingredient selector in RecipeForm to use live ingredient data from store
+- [X] T061 [US3] Update RecipeDetail to display ingredient details (price, quantity) when available
 
 ### Testing Checklist for US3
 - [ ] Verify ingredient cards display name, description, price, quantity
@@ -194,33 +194,33 @@
 **Why Independent**: Depends on recipes existing (US1) but operates independently once recipes are available
 
 ### Mock Data
-- [ ] T062 [P] [US4] Create mock meal plan data in src/data/mockMealPlans.ts with sample weekly plan
+- [X] T062 [P] [US4] Create mock meal plan data in src/data/mockMealPlans.ts with sample weekly plan
 
 ### State Management
-- [ ] T063 [US4] Create mealPlan store in src/lib/stores/mealPlanStore.ts with CRUD and meal assignment actions
-- [ ] T064 [US4] Create useMealPlan hook in src/lib/hooks/useMealPlan.ts
+- [X] T063 [US4] Create mealPlan store in src/lib/stores/mealPlanStore.ts with CRUD and meal assignment actions
+- [X] T064 [US4] Create useMealPlan hook in src/lib/hooks/useMealPlan.ts
 
 ### Service Layer
-- [ ] T065 [US4] Implement mealPlanService in src/lib/services/mealPlanService.ts with CRUD operations
-- [ ] T066 [US4] Add meal assignment logic (add, remove, update meal slots)
-- [ ] T067 [US4] Implement date range generation for weekly calendar
+- [X] T065 [US4] Implement mealPlanService in src/lib/services/mealPlanService.ts with CRUD operations
+- [X] T066 [US4] Add meal assignment logic (add, remove, update meal slots)
+- [X] T067 [US4] Implement date range generation for weekly calendar
 
 ### UI Components
-- [ ] T068 [US4] Create WeeklyCalendar component in src/components/meal-plan/WeeklyCalendar.tsx
-- [ ] T069 [US4] Create MealSlot component in src/components/meal-plan/MealSlot.tsx for each meal
-- [ ] T070 [US4] Create RecipeSearch component in src/components/meal-plan/RecipeSearch.tsx with filtering
-- [ ] T071 [US4] Implement search by recipe name and ingredient name in RecipeSearch
+- [X] T068 [US4] Create WeeklyCalendar component in src/components/meal-plan/WeeklyCalendar.tsx
+- [X] T069 [US4] Create MealSlot component in src/components/meal-plan/MealSlot.tsx for each meal
+- [X] T070 [US4] Create RecipeSearch component in src/components/meal-plan/RecipeSearch.tsx with filtering
+- [X] T071 [US4] Implement search by recipe name and ingredient name in RecipeSearch
 - [ ] T072 [US4] Add drag-and-drop support for meal assignment (optional enhancement)
 
 ### Pages
-- [ ] T073 [US4] Create meal plan page in src/app/meal-plan/page.tsx with calendar view
-- [ ] T074 [US4] Add week navigation (previous/next week) to meal plan page
-- [ ] T075 [US4] Implement meal slot click to open recipe search modal
-- [ ] T076 [US4] Add "Generate Grocery List" button to meal plan page
+- [X] T073 [US4] Create meal plan page in src/app/meal-plan/page.tsx with calendar view
+- [X] T074 [US4] Add week navigation (previous/next week) to meal plan page
+- [X] T075 [US4] Implement meal slot click to open recipe search modal
+- [X] T076 [US4] Add "Generate Grocery List" button to meal plan page
 
 ### Responsive Design
-- [ ] T077 [US4] Implement mobile layout (stacked days with collapsible meals) for meal plan
-- [ ] T078 [US4] Ensure calendar works on 320px width with touch-friendly targets
+- [X] T077 [US4] Implement mobile layout (stacked days with collapsible meals) for meal plan
+- [X] T078 [US4] Ensure calendar works on 320px width with touch-friendly targets
 
 ### Testing Checklist for US4
 - [ ] Verify weekly calendar displays 7 days with 3 meal slots each
@@ -243,15 +243,15 @@
 **Why Independent**: Depends on meal planning (US4) but is just a different view of existing data
 
 ### UI Components
-- [ ] T079 [US5] Create Sidebar component in src/components/layout/Sidebar.tsx for today's meals
-- [ ] T080 [US5] Implement date filtering to show only today's meals in Sidebar
-- [ ] T081 [US5] Add meal cards in Sidebar clickable to navigate to recipe detail
+- [X] T079 [US5] Create Sidebar component in src/components/layout/Sidebar.tsx for today's meals
+- [X] T080 [US5] Implement date filtering to show only today's meals in Sidebar
+- [X] T081 [US5] Add meal cards in Sidebar clickable to navigate to recipe detail
 
 ### Pages
-- [ ] T082 [US5] Create home page in src/app/page.tsx with 2-column layout
-- [ ] T083 [US5] Add recipe list in center column of home page (reuse recipes list)
-- [ ] T084 [US5] Add today's meal plan sidebar in right column on desktop
-- [ ] T085 [US5] Implement mobile layout (today's plan on top, recipe list below)
+- [X] T082 [US5] Create home page in src/app/page.tsx with 2-column layout
+- [X] T083 [US5] Add recipe list in center column of home page (reuse recipes list)
+- [X] T084 [US5] Add today's meal plan sidebar in right column on desktop
+- [X] T085 [US5] Implement mobile layout (today's plan on top, recipe list below)
 
 ### Testing Checklist for US5
 - [ ] Verify home page shows 2-column layout on desktop

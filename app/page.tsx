@@ -1,7 +1,7 @@
 /**
  * Home Page
  * 
- * Landing page with recipe list preview
+ * Landing page with recipe list and today's meal plan
  */
 
 'use client';
@@ -9,13 +9,16 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRecipes } from '@/lib/hooks/useRecipes';
+import { useMealPlan } from '@/lib/hooks/useMealPlan';
 import { RecipeCard } from '@/components/recipe/RecipeCard';
+import { Sidebar } from '@/components/layout/Sidebar';
 import { Button } from '@/components/common/Button';
 import { seedDatabase } from '@/lib/utils/seedDatabase';
 
 export default function HomePage() {
   const router = useRouter();
-  const { recipes, isLoading } = useRecipes();
+  const { recipes, isLoading: recipesLoading } = useRecipes();
+  const { mealPlans, isLoading: plansLoading } = useMealPlan();
   const [isSeeding, setIsSeeding] = useState(false);
   
   // Show latest 6 recipes
@@ -33,6 +36,8 @@ export default function HomePage() {
       setIsSeeding(false);
     }
   };
+  
+  const loading = recipesLoading || plansLoading;
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -52,7 +57,7 @@ export default function HomePage() {
             Plan Your Meals
           </Button>
           {/* Development helper - seed initial data */}
-          {recipes.length === 0 && !isLoading && (
+          {recipes.length === 0 && !loading && (
             <Button
               onClick={handleSeedDatabase}
               variant="ghost"
@@ -65,31 +70,58 @@ export default function HomePage() {
         </div>
       </div>
       
-      {/* Latest Recipes Section */}
-      {!isLoading && latestRecipes.length > 0 && (
-        <div className="mt-12">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Latest Recipes</h2>
-            <Button
-              onClick={() => router.push('/recipes')}
-              variant="ghost"
-              size="sm"
-            >
-              View All →
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {latestRecipes.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                onClick={(id) => router.push(`/recipes/detail?id=${id}`)}
-              />
-            ))}
-          </div>
+      {/* Main Content with Sidebar */}
+      <div className="flex flex-col lg:flex-row gap-8 mt-12">
+        {/* Today's Meal Plan Sidebar - Mobile: Top, Desktop: Right */}
+        <div className="lg:hidden">
+          {!loading && (
+            <Sidebar mealPlans={mealPlans} recipes={recipes} />
+          )}
         </div>
-      )}
+        
+        {/* Center Column - Recipe List */}
+        <div className="flex-1">
+          {!loading && latestRecipes.length > 0 && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Latest Recipes</h2>
+                <Button
+                  onClick={() => router.push('/recipes')}
+                  variant="ghost"
+                  size="sm"
+                >
+                  View All →
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {latestRecipes.map((recipe) => (
+                  <RecipeCard
+                    key={recipe.id}
+                    recipe={recipe}
+                    onClick={(id) => router.push(`/recipes/detail?id=${id}`)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {loading && (
+            <div className="text-center py-12">
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          )}
+        </div>
+        
+        {/* Today's Meal Plan Sidebar - Desktop: Right Column */}
+        <div className="hidden lg:block lg:w-96 flex-shrink-0">
+          {!loading && (
+            <div className="sticky top-8">
+              <Sidebar mealPlans={mealPlans} recipes={recipes} />
+            </div>
+          )}
+        </div>
+      </div>
       
       {/* Features Section */}
       <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">

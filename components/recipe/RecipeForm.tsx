@@ -11,10 +11,10 @@ import { Recipe, RecipeIngredient } from '@/types/Recipe';
 import { Ingredient } from '@/types/Ingredient';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { useIngredients } from '@/lib/hooks/useIngredients';
 
 export interface RecipeFormProps {
   recipe?: Recipe; // If provided, form is in edit mode
-  ingredients: Ingredient[]; // Available ingredients for selection
   onSubmit: (data: RecipeFormData) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -29,11 +29,13 @@ export interface RecipeFormData {
 
 export function RecipeForm({
   recipe,
-  ingredients,
   onSubmit,
   onCancel,
   isSubmitting = false
 }: RecipeFormProps) {
+  // Load ingredients from store
+  const { ingredients } = useIngredients();
+  
   // Form state
   const [name, setName] = useState(recipe?.name || '');
   const [instructions, setInstructions] = useState(recipe?.instructions || '');

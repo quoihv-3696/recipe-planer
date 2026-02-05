@@ -80,14 +80,28 @@ export function RecipeDetail({ recipe, ingredients = [], onEdit, onDelete, onBac
         {/* Ingredients Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">Ingredients</h2>
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {recipe.ingredients.map((recipeIng, index) => {
               const ingredient = ingredientMap.get(recipeIng.ingredientId);
               return (
-                <li key={index} className="flex items-center gap-3 text-gray-700">
-                  <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                  <span className="font-medium">{formatQuantity(recipeIng.quantity, recipeIng.unit)}</span>
-                  <span>{ingredient?.name || `Ingredient ${recipeIng.ingredientId}`}</span>
+                <li key={index} className="flex items-start gap-3">
+                  <span className="w-2 h-2 bg-blue-600 rounded-full mt-2"></span>
+                  <div className="flex-1">
+                    <div className="flex items-baseline gap-2 text-gray-700">
+                      <span className="font-medium">{formatQuantity(recipeIng.quantity, recipeIng.unit)}</span>
+                      <span className="font-semibold">{ingredient?.name || `Ingredient ${recipeIng.ingredientId}`}</span>
+                    </div>
+                    {ingredient && (
+                      <div className="mt-1 text-sm text-gray-500 flex gap-4">
+                        {ingredient.unitPrice && (
+                          <span>Price: ${ingredient.unitPrice.toFixed(2)} {ingredient.priceUnit}</span>
+                        )}
+                        {ingredient.remainingQuantity !== undefined && (
+                          <span>Available: {ingredient.remainingQuantity} {ingredient.quantityUnit}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </li>
               );
             })}

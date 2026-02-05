@@ -14,25 +14,12 @@ import { RecipeForm, RecipeFormData } from '@/components/recipe/RecipeForm';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
 import { EmptyState } from '@/components/common/EmptyState';
-import * as ingredientService from '@/lib/services/ingredientService';
-import { Ingredient } from '@/types/Ingredient';
-import { useEffect } from 'react';
 
 export default function RecipesPage() {
   const router = useRouter();
   const { recipes, isLoading, error, createRecipe } = useRecipes();
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Load ingredients for the form
-  useEffect(() => {
-    const loadIngredients = async () => {
-      const allIngredients = await ingredientService.getAllIngredients();
-      setIngredients(allIngredients);
-    };
-    loadIngredients();
-  }, []);
   
   const handleCreateRecipe = async (data: RecipeFormData) => {
     setIsSubmitting(true);
@@ -125,7 +112,6 @@ export default function RecipesPage() {
         title="Add New Recipe"
       >
         <RecipeForm
-          ingredients={ingredients}
           onSubmit={handleCreateRecipe}
           onCancel={() => setIsFormOpen(false)}
           isSubmitting={isSubmitting}
